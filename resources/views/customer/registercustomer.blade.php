@@ -10,52 +10,70 @@
                 <div>
                     <label class="block" for="Name">Full Name</label>
                     <input type="text" placeholder="Full Name" name="user_fullname" class="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-persian-green-std">
+                    @error('user_fullname')
+                    <span class="text-xs text-red-400">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div class="mt-4">
                     <label class="block" for="email">Username</label>
                     <input type="text" placeholder="Username" name="user_username" class="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-persian-green-std">
+                    @error('user_username')
+                    <span class="text-xs text-red-400">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div class="mt-4">
                     <label class="block">Password</label>
                     <input type="password" placeholder="Password" name="user_password" class="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-persian-green-std">
+                    @error('user_password')
+                    <span class="text-xs text-red-400">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div class="mt-4">
                     <label class="block">Confirm Password</label>
                     <input type="password" placeholder="Password" name="user_confirm_password" class="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-persian-green-std">
+                    @error('user_confirm_password')
+                    <span class="text-xs text-red-400">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div class="mt-4">
                     <label class="block">Address</label>
                     <input type="text" placeholder="Address" name="user_address" class="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-persian-green-std">
+                    @error('user_address')
+                    <span class="text-xs text-red-400">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div class="mt-4">
                     <label class="block">Phone Number</label>
                     <input type="text" placeholder="Phone Number" name="user_phone" class="w-full px-4 py-2 mt-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-persian-green-std">
+                    @error('user_phone')
+                    <span class="text-xs text-red-400">{{ $message }}</span>
+                    @enderror
                 </div>
                 <div class="mt-4">
                     <label class="block">Gender</label>
                     <fieldset class="py-2 mt-2">
 
                         <div class="flex flex-row gap-7">
-                            <div class="flex items-center mb-4">
+                            <div class="flex items-center">
                               <input id="gender-option-1" type="radio" name="user_gender" value="Male" class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-persian-green-std accent-persian-green-std">
                               <label for="gender-option-1" class="block ml-2 text-sm font-medium text-gray-900 ">
                                 Male
                               </label>
                             </div>
 
-                            <div class="flex items-center mb-4">
+                            <div class="flex items-center">
                               <input id="gender-option-2" type="radio" name="user_gender" value="Female" class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-persian-green-std accent-persian-green-std">
                               <label for="gender-option-2" class="block ml-2 text-sm font-medium text-gray-900 ">
                                 Female
                               </label>
                             </div>
                         </div>
+                        @error('user_gender')
+                        <span class="text-xs text-red-400">{{ $message }}</span>
+                        @enderror
 
                       </fieldset>
                 </div>
-                @if(Session::has('error'))
-                <span class="text-xs text-red-400">{{ Session::get('error') }}</span>
-                @endif
                 <div class="flex">
                     <button class="w-full px-6 py-2 mt-4 text-white transition duration-150 ease-in-out bg-persian-green-std rounded-lg hover:bg-persian-green-hov ">
                         Create Account

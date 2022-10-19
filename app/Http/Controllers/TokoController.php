@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Rules\PasswordRule;
+use App\Rules\StoreNameRule;
+use App\Rules\UserExistRule;
 use Illuminate\Http\Request;
+use App\Rules\ConfirmPasswordRule;
 use Illuminate\Support\Facades\Session;
 
 class TokoController extends Controller
@@ -21,27 +25,53 @@ class TokoController extends Controller
 
     public function doRegister(Request $req)
     {
-        if (!$req->has('user_termsncon')) {
-            return redirect()->back()->with('error', 'Please check the terms and conditions!');
-        }
+        $rules = [
+            'user_storename' => ['required', new StoreNameRule()],
+            'user_ownername' => ['required'],
+            'user_username' => ['required', 'string', 'min:8', 'alpha', new UserExistRule(Session::get('data'), $req->user_username, false)],
+            'user_password' => ['required', new PasswordRule($req->user_username)],
+            'user_confirm_password' => ['required', new PasswordRule($req->user_username), new ConfirmPasswordRule($req->user_password)],
+            'user_bank' => ['required', 'numeric', 'digits_between:4,16'],
+            'user_phone' => ['required', 'numeric', 'digits_between:8,14'],
+            'user_gender' => ['required'],
+            'user_termsncon' => ['required'],
+        ];
 
-        foreach ($req->except(['_token']) as $key => $value) {
-            if ($value == null) {
-                return redirect()->back()->with('error', 'Please fill all the fields!');
-            }
-        }
+        $messages = [
+            'user_storename' => [
+                'required' => 'Store name must be filled',
+            ],
+            'user_ownername' => [
+                'required' => 'Fullname must be filled',
+            ],
+            'user_username' => [
+                'required' => 'Username must be filled',
+                'min' => 'Username must be more than 8 characters',
+                'alpha' => 'Username must not contain special characters, numbers, or spaces',
+            ],
+            'user_password' => [
+                'required' => 'Password must be filled',
+            ],
+            'user_confirm_password' => [
+                'required' => 'Confirm Password must be filled',
+            ],
+            'user_bank' => [
+                'required' => 'Bank account must be filled',
+                'digits_between' => 'Bank account must be between 4 and 16 digits',
+            ],
+            'user_phone' => [
+                'required' => 'Phone must be filled',
+                'digits_between' => 'Phone must be between 8 and 14 digits',
+            ],
+            'user_gender' => [
+                'required' => 'Gender must be selected'
+            ],
+            'user_termsncon' => [
+                'required' => 'You must agree to the terms and conditions'
+            ]
+        ];
 
-        if ($req->user_password != $req->user_confirm_password) {
-            return redirect()->back()->with('error', 'Password not match!');
-        }
-
-        if (Session::get('data') != null) {
-            foreach (Session::get('data') as $key => $value) {
-                if ($value['user_username'] == $req->user_username && $value['user_role'] == 'store') {
-                    return redirect()->back()->with('error', 'Username already registered!');
-                }
-            }
-        }
+        $req->validate($rules, $messages);
 
         $data = $req->except(['_token', 'user_confirm_password']);
         $data['user_role'] = 'store';
@@ -71,11 +101,23 @@ class TokoController extends Controller
 
     public function doAddItem(Request $req)
     {
-        foreach ($req->except(['_token']) as $key => $value) {
-            if ($value == null) {
-                return redirect()->back()->with('error', 'Please fill all the fields!');
-            }
-        }
+        $rules = [
+            'nama_barang' => ['required', 'string', 'min:8'],
+            'harga_barang' => ['required', 'numeric', 'gt:0'],
+        ];
+
+        $messages = [
+            'nama_barang' => [
+                'required' => 'Item name must be filled',
+                'min' => 'Item name must be more than 8 characters',
+            ],
+            'harga_barang' => [
+                'required' => 'Item price must be filled',
+                'gt' => 'Item price must be greater than 0',
+            ],
+        ];
+
+        $req->validate($rules, $messages);
 
         $data = Session::get('data');
         $indexActive = -1;

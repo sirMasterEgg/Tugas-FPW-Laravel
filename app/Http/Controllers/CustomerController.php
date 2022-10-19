@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Rules\ConfirmPasswordRule;
+use App\Rules\PasswordBeforeRule;
+use App\Rules\PasswordRule;
+use App\Rules\UserExistRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
@@ -22,23 +25,46 @@ class CustomerController extends Controller
 
     public function doRegister(Request $req)
     {
-        foreach ($req->except(['_token']) as $key => $value) {
-            if ($value == null) {
-                return redirect()->back()->with('error', 'Please fill all the fields!');
-            }
-        }
+        $rules = [
+            'user_fullname' => ['required', 'string', 'max:50'],
+            'user_username' => ['required', 'string', 'min:8', 'alpha', new UserExistRule(Session::get('data'), $req->user_username, false)],
+            'user_password' => ['required', new PasswordRule($req->user_username)],
+            'user_confirm_password' => ['required', new PasswordRule($req->user_username), new ConfirmPasswordRule($req->user_password)],
+            'user_address' => ['required', 'string', 'min:12'],
+            'user_phone' => ['required', 'numeric', 'digits_between:8,14'],
+            'user_gender' => ['required'],
+        ];
 
-        if ($req->user_password != $req->user_confirm_password) {
-            return redirect()->back()->with('error', 'Password not match!');
-        }
+        $messages = [
+            'user_fullname' => [
+                'required' => 'Fullname must be filled',
+                'max' => 'Fullname must be less than 50 characters',
+            ],
+            'user_username' => [
+                'required' => 'Username must be filled',
+                'min' => 'Username must be more than 8 characters',
+                'alpha' => 'Username must not contain special characters, numbers, or spaces',
+            ],
+            'user_password' => [
+                'required' => 'Password must be filled',
+            ],
+            'user_confirm_password' => [
+                'required' => 'Password must be filled',
+            ],
+            'user_address' => [
+                'required' => 'Address must be filled',
+                'min' => 'Address must be more than 12 characters',
+            ],
+            'user_phone' => [
+                'required' => 'Phone must be filled',
+                'digits_between' => 'Phone must be between 8 and 14 digits',
+            ],
+            'user_gender' => [
+                'required' => 'Gender must be selected'
+            ]
+        ];
 
-        if (Session::get('data') != null) {
-            foreach (Session::get('data') as $key => $value) {
-                if ($value['user_username'] == $req->user_username && $value['user_role'] == 'customer') {
-                    return redirect()->back()->with('error', 'Username already registered!');
-                }
-            }
-        }
+        $req->validate($rules, $messages);
 
         $data = $req->except(['_token', 'user_confirm_password']);
         $data['user_role'] = 'customer';
@@ -56,21 +82,48 @@ class CustomerController extends Controller
 
     public function doEditProfile(Request $req)
     {
-        foreach ($req->except(['_token']) as $item) {
-            if ($item == null) {
-                return redirect()->back()->with('error', 'Please fill all the fields!');
-            }
-        }
+        $rules = [
+            'user_fullname' => ['required', 'string', 'max:50'],
+            'user_username' => ['required', 'string', 'min:8', 'alpha', new UserExistRule(Session::get('data'), $req->user_username, false)],
+            'user_address' => ['required', 'string', 'min:12'],
+            'user_phone' => ['required', 'numeric', 'digits_between:8,14'],
+            'user_new_password' => [new PasswordBeforeRule(Session::get('active')['user_password']), new PasswordRule($req->user_username, true)],
+            'user_new_confirm_password' => [new PasswordRule($req->user_username, true), new ConfirmPasswordRule($req->user_password)],
+            'user_current_password' => ['required'],
+        ];
 
-        if ($req->user_new_password != $req->user_confirm_new_password) {
-            return redirect()->back()->with('error', 'Password not match!');
-        }
+        $messages = [
+            'user_fullname' => [
+                'required' => 'Fullname must be filled',
+                'max' => 'Fullname must be less than 50 characters',
+            ],
+            'user_username' => [
+                'required' => 'Username must be filled',
+                'min' => 'Username must be more than 8 characters',
+                'alpha' => 'Username must not contain special characters, numbers, or spaces',
+            ],
+            'user_password' => [
+                'required' => 'Password must be filled',
+            ],
+            'user_confirm_password' => [
+                'required' => 'Password must be filled',
+            ],
+            'user_address' => [
+                'required' => 'Address must be filled',
+                'min' => 'Address must be more than 12 characters',
+            ],
+            'user_phone' => [
+                'required' => 'Phone must be filled',
+                'digits_between' => 'Phone must be between 8 and 14 digits',
+            ],
+            'user_gender' => [
+                'required' => 'Gender must be selected'
+            ]
+        ];
 
-        if ($req->user_current_password != Session::get('active')['user_password']) {
-            return redirect()->back()->with('error', 'Current password not match!');
-        }
+        $req->validate($rules, $messages);
 
-        $gender = Session::get('active')['user_gender'];
+        $gender = Session::get('active')['user_gender'] ?? 'Male';
         $temp = [];
         $sessiontemp = Session::get('data');
 

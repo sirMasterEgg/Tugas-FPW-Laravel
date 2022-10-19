@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Rules\UserExistRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
@@ -21,21 +21,26 @@ class SiteController extends Controller
 
     public function doLogin(Request $req)
     {
-        foreach ($req->except(['_token']) as $key => $value) {
-            if ($value == null) {
-                return redirect()->back()->with('error', 'Please fill all the fields!');
-            }
-        }
+        $rules = [
+            'username_login' => ['required'],
+            'password_login' => ['required'],
+            'btnLogin' => [new UserExistRule(Session::get('data'), $req->username_login)]
+        ];
+        $messages = [
+            'username_login.required' => 'Username must be filled',
+            'password_login.required' => 'Password must be filled',
+            'btnLogin' => 'User not found',
+        ];
+
+        $req->validate($rules, $messages);
+
+        $users = Session::get('data');
 
         if ($req->username_login == 'admin' && $req->password_login == 'admin') {
             return redirect()->route('admin-cust-list');
         }
 
-        if (Session::get('data') == null) {
-            return redirect()->back()->with('error', 'User not found!');
-        }
-
-        foreach (Session::get('data') as $key => $value) {
+        foreach ($users as $key => $value) {
             if (
                 $value['user_username'] == $req->username_login &&
                 $value['user_password'] == $req->password_login &&
