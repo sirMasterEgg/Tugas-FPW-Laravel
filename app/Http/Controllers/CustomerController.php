@@ -8,13 +8,16 @@ use App\Rules\PasswordRule;
 use App\Rules\UserExistRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
+use Termwind\Components\Dd;
 
 class CustomerController extends Controller
 {
-    public function index()
+    public function index(Request $req)
     {
+        $query = $req->query('query') ?? '';
+        strtolower($query);
         // return view('customer.login');
-        return view('customer.indexcustomer', ['title' => 'Home']);
+        return view('customer.indexcustomer', ['title' => 'Home', 'query' => $query]);
     }
 
     public function register()
@@ -67,8 +70,8 @@ class CustomerController extends Controller
         $req->validate($rules, $messages);
 
         $data = $req->except(['_token', 'user_confirm_password']);
+        $data['saldo'] = 0;
         $data['user_role'] = 'customer';
-
         Session::push('data', $data);
 
         return redirect()->route('login')->with('success', 'Register customer success!');
@@ -166,5 +169,111 @@ class CustomerController extends Controller
     {
         // return view('customer.login');
         return view('customer.historycustomer', ['title' => 'History']);
+    }
+
+    public function getTopUp()
+    {
+        return view('customer.isisaldocustomer', ['title' => 'Top Up']);
+    }
+
+    public function doTopUp(Request $req)
+    {
+        //
+        $rules = [
+            'user_top_up' => ['required', 'numeric', 'min:0'],
+            'user_current_password' => ['required'],
+        ];
+        $req->validate($rules);
+
+        $data = Session::get('data');
+
+        foreach ($data as $key => $item) {
+            if ($item['user_username'] == Session::get('active')['user_username'] && $item['user_role'] == Session::get('active')['user_role'] && $item['user_password'] == $req->user_current_password) {
+                $data[$key]['saldo'] += $req->user_top_up;
+            }
+        }
+
+        Session::put('data', $data);
+        $tempactive = Session::get('active');
+        foreach ($data as $key => $value) {
+            if ($value['user_username'] == $tempactive['user_username'] && $value['user_role'] == $tempactive['user_role']) {
+                $tempactive['saldo'] = $value['saldo'];
+            }
+        }
+        Session::put('active', $tempactive);
+        return redirect()->back()->with('success', 'Top up success!');
+    }
+
+    public function getDetails($toko)
+    {
+        $data = Session::get('data');
+        $nama = '';
+        foreach ($data as $key => $value) {
+            if ($value['user_username'] == $toko) {
+                $nama = $value;
+            }
+        }
+        return view('customer.detailcustomer', ['title' => 'Details', 'nama' => $nama]);
+    }
+
+    public function addCart(Request $req)
+    {
+        $toko = json_decode($req->toko);
+        $barang = json_decode($req->barang);
+
+        $cart = Session::get('cart') ?? [];
+
+        $user = Session::get('active');
+
+        array_push($cart, [
+            'cart_username' => $user['user_username'],
+            'cart_toko' => $toko->user_storename,
+            'cart_item' => [
+                'item_code' => $barang->kode_barang,
+                'item_name' => $barang->nama_barang,
+                'item_quantity' => $req->jumlah,
+                'item_price' => $barang->harga_barang,
+            ]
+        ]);
+
+        Session::put('cart', $cart);
+
+        return redirect()->back();
+    }
+
+    public function getCart()
+    {
+        return view('customer.cartcustomer', ['title' => 'Cart']);
+    }
+
+    public function removeCart(Request $req)
+    {
+        $cart = Session::get('cart');
+
+        array_splice($cart, $req->index, 1);
+
+        Session::put('cart', $cart);
+
+        return redirect()->back();
+    }
+
+    public function checkoutCart(Request $req)
+    {
+        if ($req->total > Session::get('active')['saldo']) {
+            return redirect()->back()->with('error', 'Saldo tidak cukup!');
+        }
+        $cart = Session::get('cart');
+
+        $history = [];
+
+        array_push($history, [
+            'cart' => $cart,
+            'total' => $req->total,
+            'time' => date("Y-m-d")
+        ]);
+
+        Session::put('history', $history);
+        Session::forget('cart');
+        return redirect()->route('customer-history');
     }
 }

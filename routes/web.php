@@ -25,12 +25,19 @@ Route::get('/login', [SiteController::class, 'login'])->name('login');
 Route::post('/login', [SiteController::class, 'doLogin'])->name('doLogin');
 
 Route::prefix('customer')->group(function () {
-    Route::get('/', [CustomerController::class, 'index'])->name('customer-index');
     Route::get('/register', [CustomerController::class, 'register'])->name('customer-register');
     Route::post('/register', [CustomerController::class, 'doRegister'])->name('customer-doregister');
     Route::get('/profile', [CustomerController::class, 'getProfile'])->name('customer-profile');
     Route::post('/profile', [CustomerController::class, 'doEditProfile'])->name('customer-doEditProfile');
     Route::get('/history', [CustomerController::class, 'getHistory'])->name('customer-history');
+    Route::get('/saldo', [CustomerController::class, 'getTopUp'])->name('customer-topup-saldo');
+    Route::post('/saldo', [CustomerController::class, 'doTopUp'])->name('customer-dotopup-saldo');
+    Route::post('/cart/add', [CustomerController::class, 'addCart'])->name('customer-add-cart');
+    Route::post('/cart/remove', [CustomerController::class, 'removeCart'])->name('customer-remove-cart');
+    Route::post('/cart/checkout', [CustomerController::class, 'checkoutCart'])->name('customer-checkout-cart');
+    Route::get('/cart', [CustomerController::class, 'getCart'])->name('customer-cart');
+    Route::get('/details/{id}', [CustomerController::class, 'getDetails'])->name('customer-details');
+    Route::get('/{query?}', [CustomerController::class, 'index'])->name('customer-index');
 });
 
 Route::prefix('toko')->group(function () {

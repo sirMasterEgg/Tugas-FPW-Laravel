@@ -34,7 +34,7 @@
                                             </button>
                                             <div class="flex justify-between">
                                                 <label class="inline-flex items-center">
-                                                    <input type="checkbox" class="w-4 h-4 rounded focus:ring-persian-green-std accent-persian-green-std focus:ring-2 "/>
+                                                    <input type="checkbox" name="remember_me" class="w-4 h-4 rounded focus:ring-persian-green-std accent-persian-green-std focus:ring-2 "/>
                                                     <span class="ml-2 select-none">Remember me</span>
                                                   </label>
                                                 <div class="right">
