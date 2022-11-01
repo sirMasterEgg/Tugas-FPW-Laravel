@@ -7,14 +7,18 @@ use App\Rules\StoreNameRule;
 use App\Rules\UserExistRule;
 use Illuminate\Http\Request;
 use App\Rules\ConfirmPasswordRule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
+use Termwind\Components\Dd;
 
 class TokoController extends Controller
 {
     public function index()
     {
         // return view('toko.login');
-        return view('toko.indextoko', ['title' => 'Seller Page']);
+        $res = DB::table('goods')->select()->where('username_store', Session::get('active'))->get();
+        $posts = DB::table('posts')->select()->where('username_store', Session::get('active'))->get();
+        return view('toko.indextoko', ['title' => 'Seller Page', 'data' => $res, 'posts' => $posts]);
     }
 
     public function register()
@@ -28,7 +32,7 @@ class TokoController extends Controller
         $rules = [
             'user_storename' => ['required', new StoreNameRule()],
             'user_ownername' => ['required'],
-            'user_username' => ['required', 'string', 'min:8', 'alpha', new UserExistRule(Session::get('data'), $req->user_username, false)],
+            'user_username' => ['required', 'string', 'min:8', 'alpha'],
             'user_password' => ['required', new PasswordRule($req->user_username)],
             'user_confirm_password' => ['required', new PasswordRule($req->user_username), new ConfirmPasswordRule($req->user_password)],
             'user_bank' => ['required', 'numeric', 'digits_between:4,16'],
@@ -73,14 +77,28 @@ class TokoController extends Controller
 
         $req->validate($rules, $messages);
 
-        $data = $req->except(['_token', 'user_confirm_password']);
+        /* $data = $req->except(['_token', 'user_confirm_password']);
         $data['user_role'] = 'store';
         $data['items'] = [];
 
 
-        Session::push('data', $data);
+        Session::push('data', $data); */
 
-        return redirect()->route('login')->with('success', 'Register store success!');
+        $res = DB::table('stores')->insert([
+            'username' => $req->user_username,
+            'password' => $req->user_password,
+            'store_name' => $req->user_storename,
+            'name' => $req->user_ownername,
+            'bank_account' => $req->user_bank,
+            'phone_number' => $req->user_phone,
+            'gender' => $req->user_gender,
+        ]);
+
+        if ($res) {
+            return redirect()->route('login')->with('success', 'Register store success!');
+        } else {
+            return redirect()->back()->with('error', 'Register store failed!');
+        }
     }
 
     public function getProfile()
@@ -91,7 +109,8 @@ class TokoController extends Controller
 
     public function getItems()
     {
-        return view('toko.itemstoko', ['title' => 'Seller Items']);
+        $res = DB::table('goods')->select()->where('username_store', Session::get('active'))->get();
+        return view('toko.itemstoko', ['title' => 'Seller Items', 'data' => $res]);
     }
 
     public function getAddItem()
@@ -104,6 +123,7 @@ class TokoController extends Controller
         $rules = [
             'nama_barang' => ['required', 'string', 'min:8'],
             'harga_barang' => ['required', 'numeric', 'gt:0'],
+            'stok_barang' => ['required', 'numeric', 'gt:0'],
         ];
 
         $messages = [
@@ -115,11 +135,15 @@ class TokoController extends Controller
                 'required' => 'Item price must be filled',
                 'gt' => 'Item price must be greater than 0',
             ],
+            'stok_barang' => [
+                'required' => 'Item stock must be filled',
+                'gt' => 'Item stock must be greater than 0',
+            ],
         ];
 
         $req->validate($rules, $messages);
 
-        $data = Session::get('data');
+        /* $data = Session::get('data');
         $indexActive = -1;
 
         $namaBarang = $req->nama_barang;
@@ -141,21 +165,30 @@ class TokoController extends Controller
 
         $activedata = Session::get('active');
         $activedata['items'] = $data[$indexActive]['items'];
-        Session::put('active', $activedata);
+        Session::put('active', $activedata); */
 
         // dd(Session::get('data'));
-        return redirect()->route('toko-items')->with('success', 'Add item success!');
+
+        $res = DB::table('goods')->insert([
+            'kode_barang' => $this->generateID($req->nama_barang),
+            'nama_barang' => $req->nama_barang,
+            'harga_barang' => $req->harga_barang,
+            'stok_barang' => $req->stok_barang,
+            'username_store' => Session::get('active'),
+        ]);
+        if ($res) {
+            return redirect()->route('toko-items')->with('success', 'Add item success!');
+        } else {
+            return redirect()->back()->with('error', 'Add item failed!');
+        }
     }
 
     private function generateID($nama)
     {
         $prefix = strtoupper(substr($nama, 0, 2));
         $counter = 1;
-        foreach (Session::get('active')['items'] ?? [] as $key => $value) {
-            if (substr($value['kode_barang'], 0, 2) == $prefix) {
-                $counter++;
-            }
-        }
+        $res = DB::table('goods')->where('kode_barang', 'like', "$prefix%")->get()->count();
+        $counter += $res;
         return strtoupper($prefix) . str_pad($counter, 3, '0', STR_PAD_LEFT);
     }
 
@@ -183,5 +216,35 @@ class TokoController extends Controller
         Session::put('active', $activedata);
 
         return redirect()->route('toko-items')->with('success', 'Delete item success!');
+    }
+
+    public function getPost()
+    {
+        $res = DB::table('posts')->select()->where('username_store', Session::get('active'))->get();
+        return view('toko.post', ['title' => 'Post Item', 'data' => $res]);
+    }
+
+    public function doPost(Request $req)
+    {
+        $res = DB::table('posts')->insert([
+            'username_store' => Session::get('active'),
+            'content' => $req->message,
+            'created_at' =>  \Carbon\Carbon::now(),
+        ]);
+        if ($res) {
+            return redirect()->back()->with('success', 'Post success!');
+        } else {
+            return redirect()->back()->with('error', 'Post failed!');
+        }
+    }
+
+    public function doHapusPost($id = null)
+    {
+        $res = DB::table('posts')->where('id', $id)->delete();
+        if ($res) {
+            return redirect()->back()->with('success', 'Delete post success!');
+        } else {
+            return redirect()->back()->with('error', 'Delete post failed!');
+        }
     }
 }

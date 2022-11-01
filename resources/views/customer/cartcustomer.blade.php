@@ -29,26 +29,26 @@
                         @php
                             $total = 0;
                         @endphp
-                        @foreach (Session::get('cart')??[] as $key => $value)
+                        @foreach ($cart as $key => $value)
                         @php
-                            $total += $value['cart_item']['item_price'] * $value['cart_item']['item_quantity'];
+                            $total += $value->subtotal;
                         @endphp
                         <form action="{{ route('customer-remove-cart') }}" method="post">
                             @csrf
                             <tr class="bg-white border-b hover:bg-gray-50 ">
                                 <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap ">
-                                    {{ $value['cart_item']['item_name'] }}
+                                    {{ $value->nama_barang }}
                                 </th>
                                 <td class="py-4 px-6">
-                                    {{ $value['cart_item']['item_quantity'] }}
+                                    {{ $value->jumlah_barang }}
                                 </td>
                                 <td class="py-4 px-6">
-                                    {{ $value['cart_item']['item_price'] }}
+                                    {{ $value->harga_barang }}
                                 </td>
                                 <td class="py-4 px-6">
-                                    {{ $value['cart_item']['item_price'] * $value['cart_item']['item_quantity'] }}
+                                    {{ $value->subtotal }}
                                 </td>
-                                <input type="hidden" name="index" value="{{ $key }}">
+                                <input type="hidden" name="index" value="{{ $value->id }}">
                                 <td class="py-4 px-6 text-right">
                                     <button type="submit" class="font-medium text-red-600  hover:underline">Remove</button>
                                 </td>

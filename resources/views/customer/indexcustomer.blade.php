@@ -15,20 +15,28 @@
                 </div>
             </form>
 
-            @foreach (Session::get('data')??[] as $value)
-            @if($value['user_role'] == 'store' && Str::contains(Str::lower($value['user_storename']), $query == null || $query == '' ? Str::lower($value['user_storename']) : $query))
-            <div class="flex flex-wrap mt-4">
-                <div class="p-6 w-64 h-64 bg-white rounded-lg border border-gray-200 shadow-md">
-                    <div class="h-3/4">
-                        <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">{{ $value['user_storename'] }}</h5>
+            <div class="flex flex-wrap gap-5">
+                @foreach ($data as $value)
+                <div class="flex flex-wrap mt-4">
+                    <div class="p-6 w-64 h-64 bg-white rounded-lg border border-gray-200 shadow-md">
+                        <div class="h-3/4">
+                            <h5 class="mb-2 text-2xl font-bold tracking-tight text-gray-900">{{ $value->name }}</h5>
+                        </div>
+                        <a href="{{ route('customer-details', $value->username) }}" class="inline-flex cursor-pointer items-center py-2 px-3 text-sm font-medium text-center text-white bg-persian-green-std rounded-lg hover:bg-persian-green-hov focus:ring-4 focus:outline-none focus:ring-blue-300 ">
+                            Details
+                        </a>
+                        <a href="{{ route('customer-add-favorite', $value->username) }}" class="inline-flex cursor-pointer items-center py-2 px-3 text-sm font-medium text-center text-black bg-maize-crayola-std rounded-lg hover:bg-maize-crayola-hov focus:ring-4 focus:outline-none focus:ring-blue-300 ">
+
+                            @if(DB::table('favorite_stores')->select()->where('username_customer', Session::get('active'))->where('username_store', $value->username)->first())
+                            Remove Favorite
+                            @else
+                            Add to favorite
+                            @endif
+                        </a>
                     </div>
-                    <a href="{{ route('customer-details', $value['user_username']) }}" class="inline-flex cursor-pointer items-center py-2 px-3 text-sm font-medium text-center text-white bg-persian-green-std rounded-lg hover:bg-persian-green-hov focus:ring-4 focus:outline-none focus:ring-blue-300 ">
-                        Details
-                    </a>
                 </div>
+                @endforeach
             </div>
-            @endif
-            @endforeach
 
         </div>
     </div>

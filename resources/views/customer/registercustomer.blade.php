@@ -55,14 +55,14 @@
 
                         <div class="flex flex-row gap-7">
                             <div class="flex items-center">
-                              <input id="gender-option-1" type="radio" name="user_gender" value="Male" class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-persian-green-std accent-persian-green-std">
+                              <input id="gender-option-1" type="radio" name="user_gender" value="0" class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-persian-green-std accent-persian-green-std">
                               <label for="gender-option-1" class="block ml-2 text-sm font-medium text-gray-900 ">
                                 Male
                               </label>
                             </div>
 
                             <div class="flex items-center">
-                              <input id="gender-option-2" type="radio" name="user_gender" value="Female" class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-persian-green-std accent-persian-green-std">
+                              <input id="gender-option-2" type="radio" name="user_gender" value="1" class="w-4 h-4 border-gray-300 focus:ring-2 focus:ring-persian-green-std accent-persian-green-std">
                               <label for="gender-option-2" class="block ml-2 text-sm font-medium text-gray-900 ">
                                 Female
                               </label>

@@ -2,22 +2,29 @@
 
 namespace App\Http\Controllers;
 
-use App\Rules\ConfirmPasswordRule;
-use App\Rules\PasswordBeforeRule;
 use App\Rules\PasswordRule;
+use Termwind\Components\Dd;
 use App\Rules\UserExistRule;
 use Illuminate\Http\Request;
+use App\Rules\PasswordBeforeRule;
+use App\Rules\ConfirmPasswordRule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use Termwind\Components\Dd;
 
 class CustomerController extends Controller
 {
     public function index(Request $req)
     {
         $query = $req->query('query') ?? '';
-        strtolower($query);
+        $query = strtolower($query);
+        $data = DB::table('stores')->select()->get();
+
+        if ($query != '') {
+            $data = DB::table('stores')->select()->where(DB::raw('lower(name)'), 'like', "%$query%")->get();
+        }
+
         // return view('customer.login');
-        return view('customer.indexcustomer', ['title' => 'Home', 'query' => $query]);
+        return view('customer.indexcustomer', ['title' => 'Home', 'data' => $data]);
     }
 
     public function register()
@@ -30,7 +37,7 @@ class CustomerController extends Controller
     {
         $rules = [
             'user_fullname' => ['required', 'string', 'max:50'],
-            'user_username' => ['required', 'string', 'min:8', 'alpha', new UserExistRule(Session::get('data'), $req->user_username, false)],
+            'user_username' => ['required', 'string', 'min:8', 'alpha'],
             'user_password' => ['required', new PasswordRule($req->user_username)],
             'user_confirm_password' => ['required', new PasswordRule($req->user_username), new ConfirmPasswordRule($req->user_password)],
             'user_address' => ['required', 'string', 'min:12'],
@@ -69,12 +76,25 @@ class CustomerController extends Controller
 
         $req->validate($rules, $messages);
 
-        $data = $req->except(['_token', 'user_confirm_password']);
+        /* $data = $req->except(['_token', 'user_confirm_password']);
         $data['saldo'] = 0;
         $data['user_role'] = 'customer';
-        Session::push('data', $data);
+        Session::push('data', $data); */
 
-        return redirect()->route('login')->with('success', 'Register customer success!');
+        $res = DB::table('customers')->insert([
+            'username' => $req->user_username,
+            'password' => $req->user_password,
+            'name' => $req->user_fullname,
+            'address' => $req->user_address,
+            'phone_number' => $req->user_phone,
+            'gender' => $req->user_gender,
+        ]);
+
+        if ($res) {
+            return redirect()->route('login')->with('success', 'Register customer success!');
+        } else {
+            return redirect()->back()->with('error', 'Register failed');
+        }
     }
 
     public function getProfile()
@@ -206,19 +226,22 @@ class CustomerController extends Controller
 
     public function getDetails($toko)
     {
-        $data = Session::get('data');
+        $res =  DB::table('goods as g')->select()->join('stores as s', 'g.username_store', '=', 's.username')->where('username_store', $toko)->get();
+        /* $data = Session::get('data');
         $nama = '';
         foreach ($data as $key => $value) {
             if ($value['user_username'] == $toko) {
                 $nama = $value;
             }
-        }
-        return view('customer.detailcustomer', ['title' => 'Details', 'nama' => $nama]);
+        } */
+        $namaToko = DB::table('stores')->select('name')->where('username', $toko)->first();
+        $posts = DB::table('posts')->select()->where('username_store', $toko)->get();
+        return view('customer.detailcustomer', ['title' => 'Details', 'nama' => $res, 'namatoko' => $namaToko, 'posts' => $posts]);
     }
 
     public function addCart(Request $req)
     {
-        $toko = json_decode($req->toko);
+        /* $toko = json_decode($req->toko);
         $barang = json_decode($req->barang);
 
         $cart = Session::get('cart') ?? [];
@@ -236,14 +259,22 @@ class CustomerController extends Controller
             ]
         ]);
 
-        Session::put('cart', $cart);
+        Session::put('cart', $cart); */
+
+        DB::table('carts')->insert([
+            'username_customer' => Session::get('active'),
+            'username_store' => $req->toko,
+            'kode_barang' => $req->kode_barang,
+            'jumlah_barang' => $req->jumlah,
+        ]);
 
         return redirect()->back();
     }
 
     public function getCart()
     {
-        return view('customer.cartcustomer', ['title' => 'Cart']);
+        $cart = DB::table('carts')->select(['*', DB::raw('jumlah_barang * harga_barang as subtotal')])->join('goods', 'carts.kode_barang', '=', 'goods.kode_barang')->where('username_customer', Session::get('active'))->get();
+        return view('customer.cartcustomer', ['title' => 'Cart', 'cart' => $cart]);
     }
 
     public function removeCart(Request $req)
@@ -259,10 +290,39 @@ class CustomerController extends Controller
 
     public function checkoutCart(Request $req)
     {
-        if ($req->total > Session::get('active')['saldo']) {
+        $saldo = DB::table('customers')->select('saldo')->where('username', Session::get('active'))->first();
+        $kodebarang = DB::table('carts')->select(['kode_barang', 'jumlah_barang'])->where('username_customer', Session::get('active'))->get();
+
+        if ($req->total > $saldo->saldo) {
             return redirect()->back()->with('error', 'Saldo tidak cukup!');
         }
-        $cart = Session::get('cart');
+
+
+        foreach ($kodebarang as $key => $value) {
+            $barang = DB::table('goods')->select('stok_barang')->where('kode_barang', $value->kode_barang)->first();
+            $stok = $barang->stok_barang;
+            $jumlah = DB::table('carts')->select('jumlah_barang')->where('kode_barang', $value->kode_barang)->first();
+            $jumlah = $jumlah->jumlah_barang;
+            if ($stok < $jumlah) {
+                return redirect()->back()->with('error', 'Stok barang tidak mencukupi!');
+            }
+        }
+
+        foreach ($kodebarang as $key => $value) {
+            $barang = DB::table('goods')->select('stok_barang')->where('kode_barang', $value->kode_barang)->first();
+            $stok = $barang->stok_barang;
+            $jumlah = DB::table('carts')->select('jumlah_barang')->where('kode_barang', $value->kode_barang)->first();
+            $jumlah = $jumlah->jumlah_barang;
+            $delta = $stok - $jumlah;
+
+            DB::table('goods')->where('kode_barang', $value->kode_barang)->update(['stok_barang' => $delta]);
+            DB::table('carts')->where('kode_barang', $value->kode_barang)->delete();
+        }
+
+        DB::table('customers')->where('username', Session::get('active'))->update(['saldo' => $saldo->saldo - $req->total]);
+
+
+        /* $cart = Session::get('cart');
 
         $history = [];
 
@@ -273,7 +333,29 @@ class CustomerController extends Controller
         ]);
 
         Session::put('history', $history);
-        Session::forget('cart');
+        Session::forget('cart'); */
         return redirect()->route('customer-history');
+    }
+
+    public function addFavorite($id)
+    {
+        $ada = DB::table('favorite_stores')->select()->where('username_customer', Session::get('active'))->where('username_store', $id)->first();
+        if ($ada) {
+            DB::table('favorite_stores')->where('username_customer', Session::get('active'))->where('username_store', $id)->delete();
+        } else {
+            DB::table('favorite_stores')->insert([
+                'username_customer' => Session::get('active'),
+                'username_store' => $id
+            ]);
+        }
+        return redirect()->back();
+    }
+
+    public function getFavorite()
+    {
+        $data = DB::table('favorite_stores as fs')->select()
+            ->join('stores as s', 'fs.username_store', '=', 's.username')
+            ->where('username_customer', Session::get('active'))->get();
+        return view('customer.favoritestore', ['title' => 'Favorite Store', 'data' => $data]);
     }
 }

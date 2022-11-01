@@ -25,7 +25,7 @@
                                     Harga Barang
                                 </th>
                                 <th scope="col" class="py-3 px-6">
-                                    Jumlah Terjual
+                                    Total Terjual
                                 </th>
                                 <th scope="col" class="py-3 px-6">
                                     Action
@@ -33,41 +33,41 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (Session::get('active')['items']??[] as $i => $item)
+                            @foreach ($data as $i => $item)
                                 @if ($i % 2 == 0)
                                 <tr class="bg-white border-b">
                                     <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap ">
-                                        {{ $item['kode_barang'] }}
+                                        {{ $item->kode_barang }}
                                     </th>
                                     <td class="py-4 px-6">
-                                        {{ $item['nama_barang'] }}
+                                        {{ $item->nama_barang }}
                                     </td>
                                     <td class="py-4 px-6">
-                                        {{ $item['harga_barang'] }}
+                                        {{ $item->harga_barang }}
                                     </td>
                                     <td class="py-4 px-6">
-                                        {{ $item['jumlah_terjual'] }}
+                                        0
                                     </td>
                                     <td class="py-4 px-6">
-                                        <a href="{{ route('toko-doDeleteItem', $item['kode_barang']) }}" class="font-medium text-red-600  hover:underline">Delete</a>
+                                        <a href="{{ route('toko-doDeleteItem', $item->kode_barang) }}" class="font-medium text-red-600  hover:underline">Delete</a>
                                     </td>
                                 </tr>
                                 @else
                                 <tr class="bg-gray-50 border-b">
                                     <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-nowrap ">
-                                        {{ $item['kode_barang'] }}
+                                        {{ $item->kode_barang }}
                                     </th>
                                     <td class="py-4 px-6">
-                                        {{ $item['nama_barang'] }}
+                                        {{ $item->nama_barang }}
                                     </td>
                                     <td class="py-4 px-6">
-                                        {{ $item['harga_barang'] }}
+                                        {{ $item->harga_barang }}
                                     </td>
                                     <td class="py-4 px-6">
-                                        {{ $item['jumlah_terjual'] }}
+                                        0
                                     </td>
                                     <td class="py-4 px-6">
-                                        <a href="{{ route('toko-doDeleteItem', $item['kode_barang']) }}" class="font-medium text-red-600  hover:underline">Delete</a>
+                                        <a href="{{ route('toko-doDeleteItem', $item->kode_barang) }}" class="font-medium text-red-600  hover:underline">Delete</a>
                                     </td>
                                 </tr>
                                 @endif

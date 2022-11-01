@@ -23,6 +23,13 @@
                             <div class="text-red-500 text-sm">{{ $message }}</div>
                         @enderror
                     </div>
+                    <div class=" {{ Session::has('error') ? 'mb-2' : 'mb-6' }}">
+                        <label for="stokbarang" class="block mb-2 text-sm font-medium text-gray-900 ">Harga</label>
+                        <input type="text" id="stokbarang" class="shadow-sm bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Stok" name="stok_barang">
+                        @error('stok_barang')
+                            <div class="text-red-500 text-sm">{{ $message }}</div>
+                        @enderror
+                    </div>
                     @if(Session::has('error'))
                         <p class="mb-4 text-sm text-red-600 dark:text-red-500">{{ Session::get('error') }}</p>
                     @endif
