@@ -3,6 +3,9 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+
+use App\Models\Good;
+use App\Models\Customer;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -185,31 +188,26 @@ class DatabaseSeeder extends Seeder
         $carts = [
             [
                 'username_customer' => 'halobangsatu',
-                'username_store' => 'tokobangsatu',
                 'kode_barang' => 'BA001',
                 'jumlah_barang' => 1,
             ],
             [
                 'username_customer' => 'halobangsatu',
-                'username_store' => 'tokobangsatu',
                 'kode_barang' => 'BA002',
                 'jumlah_barang' => 2,
             ],
             [
                 'username_customer' => 'halobangsatu',
-                'username_store' => 'tokobangsatu',
                 'kode_barang' => 'BA003',
                 'jumlah_barang' => 3,
             ],
             [
                 'username_customer' => 'halobangsatu',
-                'username_store' => 'tokobangsatu',
                 'kode_barang' => 'BA004',
                 'jumlah_barang' => 4,
             ],
             [
                 'username_customer' => 'halobangsatu',
-                'username_store' => 'tokobangdua',
                 'kode_barang' => 'CE001',
                 'jumlah_barang' => 5,
             ],
@@ -276,6 +274,109 @@ class DatabaseSeeder extends Seeder
 
         foreach ($posts as $key => $value) {
             DB::table('posts')->insert($value);
+        }
+
+
+        $reviews = [
+            [
+                'username_customer' => 'halobangsatu',
+                'kode_barang' => 'BA001',
+                'rating' => 5,
+                'review' => 'Ini adalah review pertama',
+                'created_at' =>  \Carbon\Carbon::now(),
+            ],
+            [
+                'username_customer' => 'halobangsatu',
+                'kode_barang' => 'BA002',
+                'rating' => 4,
+                'review' => 'Ini adalah review kedua',
+                'created_at' =>  \Carbon\Carbon::now(),
+            ],
+            [
+                'username_customer' => 'halobangsatu',
+                'kode_barang' => 'BA003',
+                'rating' => 3,
+                'review' => 'Ini adalah review ketiga',
+                'created_at' =>  \Carbon\Carbon::now(),
+            ],
+            [
+                'username_customer' => 'halobangsatu',
+                'kode_barang' => 'BA004',
+                'rating' => 2,
+                'review' => 'Ini adalah review pertama',
+                'created_at' =>  \Carbon\Carbon::now(),
+            ],
+            [
+                'username_customer' => 'halobangsatu',
+                'kode_barang' => 'CE001',
+                'rating' => 1,
+                'review' => 'Ini adalah review kedua',
+                'created_at' =>  \Carbon\Carbon::now(),
+            ],
+        ];
+
+        foreach ($reviews as $key => $value) {
+            $customer = Customer::where('username', $value['username_customer'])->first();
+            $goods = Good::where('kode_barang', $value['kode_barang'])->first();
+
+            $customer->reviews()->attach($goods, ['rating' => $value['rating'], 'review' => $value['review'], 'created_at' => $value['created_at']]);
+        }
+
+        $transactions = [
+            [
+                'username_customer' => 'halobangsatu',
+                'kode_barang' => 'BA001',
+                'jumlah_barang' => 1,
+                'total_harga' => 10000,
+                'created_at' =>  \Carbon\Carbon::now(),
+            ],
+            [
+                'username_customer' => 'halobangsatu',
+                'kode_barang' => 'BA002',
+                'jumlah_barang' => 2,
+                'total_harga' => 20000,
+                'created_at' =>  \Carbon\Carbon::now(),
+            ],
+            [
+                'username_customer' => 'halobangsatu',
+                'kode_barang' => 'BA003',
+                'jumlah_barang' => 3,
+                'total_harga' => 30000,
+                'created_at' =>  \Carbon\Carbon::now(),
+            ],
+            [
+                'username_customer' => 'halobangsatu',
+                'kode_barang' => 'BA004',
+                'jumlah_barang' => 4,
+                'total_harga' => 40000,
+                'created_at' =>  \Carbon\Carbon::now(),
+            ],
+            [
+                'username_customer' => 'halobangsatu',
+                'kode_barang' => 'CE001',
+                'jumlah_barang' => 5,
+                'total_harga' => 50000,
+                'created_at' =>  \Carbon\Carbon::now(),
+            ],
+        ];
+
+        foreach ($transactions as $key => $value) {
+            $customer = Customer::where('username', $value['username_customer'])->first();
+            $goods = Good::where('kode_barang', $value['kode_barang'])->first();
+
+            $header = $customer->header_transactions()->create([
+                'username_customer' => $value['username_customer'],
+                'total_harga' => $value['total_harga'],
+                'created_at' => $value['created_at'],
+            ]);
+
+            DB::table('detail_trans')->insert([
+                'id_head_trans' => $header->id,
+                'kode_barang' => $value['kode_barang'],
+                'jumlah_barang' => $value['jumlah_barang'],
+                'created_at' => $value['created_at'],
+                'updated_at' => $value['created_at'],
+            ]);
         }
     }
 }

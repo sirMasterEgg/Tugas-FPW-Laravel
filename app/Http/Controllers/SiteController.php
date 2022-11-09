@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Store;
+use App\Models\Customer;
 use App\Rules\UserExistRule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -64,12 +66,20 @@ class SiteController extends Controller
             return redirect()->route('admin-cust-list');
         }
 
-        $resUser = DB::table('customers')->select()
-            ->where('username', $req->username_login)
+        // $resUser = DB::table('customers')->select()
+        //     ->where('username', $req->username_login)
+        //     ->where('password', $req->password_login)
+        //     ->first();
+        // $resStore = DB::table('stores')->select()
+        //     ->where('username', $req->username_login)
+        //     ->where('password', $req->password_login)
+        //     ->first();
+
+        $resUser = Customer::where('username', $req->username_login)
             ->where('password', $req->password_login)
             ->first();
-        $resStore = DB::table('stores')->select()
-            ->where('username', $req->username_login)
+
+        $resStore = Store::where('username', $req->username_login)
             ->where('password', $req->password_login)
             ->first();
 

@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Good;
+use App\Models\Store;
+use App\Models\Customer;
 use App\Rules\PasswordRule;
 use Termwind\Components\Dd;
 use App\Rules\UserExistRule;
 use Illuminate\Http\Request;
+use App\Models\HeaderTransaction;
 use App\Rules\PasswordBeforeRule;
 use App\Rules\ConfirmPasswordRule;
 use Illuminate\Support\Facades\DB;
@@ -239,6 +243,42 @@ class CustomerController extends Controller
         return view('customer.detailcustomer', ['title' => 'Details', 'nama' => $res, 'namatoko' => $namaToko, 'posts' => $posts]);
     }
 
+    public function getDetailsBarang($username_toko, $kode_barang)
+    {
+        $toko = Store::where('username', $username_toko)->first();
+        $barang = Good::where('kode_barang', $kode_barang)->first();
+        $terjual = $barang->header_transactions()->get();
+
+        $reviews = $barang->reviews()->get();
+
+        return view('customer.detailbarangcustomer', ['title' => 'Details Barang', 'toko' => $toko, 'barang' => $barang, 'terjual' => $terjual, 'reviews' => $reviews]);
+    }
+
+    public function addReview($username_toko, $kode_barang, Request $req)
+    {
+        // dump($username_toko);
+        // dump($kode_barang);
+        // dd($req->all());
+
+        $rules = [
+            'rating' => ['required', 'numeric', 'min:1', 'max:5'],
+        ];
+        $req->validate($rules);
+
+        $barang = Good::where('kode_barang', $kode_barang)->first();
+        $customer = Customer::where('username', Session::get('active'))->first();
+
+        if ($barang->reviews->contains($customer)) {
+            return redirect()->back()->with('error', 'You have already reviewed this product!');
+        }
+
+        $barang->reviews()->attach($customer, [
+            'rating' => $req->rating,
+            'review' => $req->review,
+        ]);
+        return redirect()->back()->with('success', 'Review added!');
+    }
+
     public function addCart(Request $req)
     {
         /* $toko = json_decode($req->toko);
@@ -263,7 +303,6 @@ class CustomerController extends Controller
 
         DB::table('carts')->insert([
             'username_customer' => Session::get('active'),
-            'username_store' => $req->toko,
             'kode_barang' => $req->kode_barang,
             'jumlah_barang' => $req->jumlah,
         ]);

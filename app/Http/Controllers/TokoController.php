@@ -2,29 +2,54 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Good;
+use App\Models\Post;
+use App\Models\Review;
 use App\Rules\PasswordRule;
+use Termwind\Components\Dd;
 use App\Rules\StoreNameRule;
 use App\Rules\UserExistRule;
 use Illuminate\Http\Request;
 use App\Rules\ConfirmPasswordRule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Session;
-use Termwind\Components\Dd;
 
 class TokoController extends Controller
 {
     public function index()
     {
         // return view('toko.login');
-        $res = DB::table('goods')->select()->where('username_store', Session::get('active'))->get();
-        $posts = DB::table('posts')->select()->where('username_store', Session::get('active'))->get();
-        return view('toko.indextoko', ['title' => 'Seller Page', 'data' => $res, 'posts' => $posts]);
+        $res = Good::where('username_store', Session::get('active'))->get();
+        $posts = Post::where('username_store', Session::get('active'))->get();
+        $reviews = Review::withTrashed()->join('customers as c', 'c.username', '=', 'reviews.username')->join('goods as g', 'g.kode_barang', '=', 'reviews.kode_barang')->get();
+        // foreach ($res as $key => $value) {
+        //     $reviews[] = $value;
+        //     $reviews[$key]['reviews'] = $value->reviews;
+        // }
+        return view('toko.indextoko', ['title' => 'Seller Page', 'data' => $res, 'posts' => $posts, 'reviewsparent' => $reviews]);
     }
 
     public function register()
     {
         // return view('toko.login');
         return view('toko.registertoko', ['title' => 'Register Seller']);
+    }
+
+    public function doDeleteReview(Request $req)
+    {
+        $goods = Review::withTrashed()->where('kode_barang', $req->kode_barang)->where('username', $req->username_customer)->first();
+
+        if ($goods->trashed()) {
+            $res = $goods->restore();
+        } else {
+            $res = $goods->delete();
+        }
+
+        if ($res) {
+            return redirect()->back()->with('success', 'Review berhasil dihapus');
+        } else {
+            return redirect()->back()->with('error', 'Review gagal dihapus');
+        }
     }
 
     public function doRegister(Request $req)

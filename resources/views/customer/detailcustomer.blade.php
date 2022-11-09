@@ -42,7 +42,9 @@
                             @csrf
                             <tr class="bg-white border-b hover:bg-gray-50 ">
                                 <td class="py-4 px-6 font-semibold text-gray-900 ">
-                                    {{ $item->nama_barang }}
+                                    <a href="{{ route('customer-details-barang',[$item->username_store, $item->kode_barang]) }}">
+                                        {{ $item->nama_barang }}
+                                    </a>
                                 </td>
                                 <td class="py-4 px-6">
                                     <div class="flex items-center space-x-3">

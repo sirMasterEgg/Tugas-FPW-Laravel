@@ -13,16 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('carts', function (Blueprint $table) {
+        Schema::create('reviews', function (Blueprint $table) {
             $table->id();
-
-            $table->string('username_customer');
-            $table->foreign('username_customer')->references('username')->on('customers');
-
+            $table->string('username');
             $table->string('kode_barang');
+            $table->string('review')->nullable();
+            $table->float('rating');
+            $table->foreign('username')->references('username')->on('customers');
             $table->foreign('kode_barang')->references('kode_barang')->on('goods');
-
-            $table->integer('jumlah_barang');
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -33,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('carts');
+        Schema::dropIfExists('reviews');
     }
 };

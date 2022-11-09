@@ -105,6 +105,111 @@
                     </table>
                 </div>
 
+                <div class="overflow-x-auto relative shadow-md sm:rounded-lg mt-5">
+                    <table class="w-full text-sm text-left text-gray-500 ">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50  ">
+                            <tr>
+                                <th scope="col" class="py-3 px-6">
+                                    Nama Barang
+                                </th>
+                                <th scope="col" class="py-3 px-6">
+                                    Timestamp
+                                </th>
+                                <th scope="col" class="py-3 px-6">
+                                    Rating
+                                </th>
+                                <th scope="col" class="py-3 px-6">
+                                    Review
+                                </th>
+                                <th scope="col" class="py-3 px-6">
+                                    Customer
+                                </th>
+                                <th scope="col" class="py-3 px-6">
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($reviewsparent as $review)
+                            <form action="{{ route('toko-delete-review') }}" method="post">
+                                @csrf
+                                <tr class="bg-white border-b">
+                                    <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-normal max-w-2xl">
+                                        {{ $review->nama_barang }}
+                                    </th>
+                                    <td class="py-4 px-6">
+                                        {{ Carbon\Carbon::parse($review->created_at)->diffForHumans() }}
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        {{ $review->rating }}
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        {{ $review->review }}
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        {{ $review->name }}
+                                    </td>
+                                    <td class="py-4 px-6">
+                                        <input type="hidden" name="kode_barang" value="{{ $review->kode_barang }}">
+                                        <input type="hidden" name="username_customer" value="{{ $review->username }}">
+                                        @if($review->trashed())
+                                            <button type="submit" class="focus:outline-none text-white bg-green-500 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">Restore</button>
+                                        @else
+                                            <button type="submit" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">Delete</button>
+                                        @endif
+
+                                    </td>
+                                </tr>
+                            </form>
+                            @endforeach
+                            {{-- @foreach ($reviewsparent as $item)
+                                @foreach ($item->reviews??[] as $review)
+
+                                    <form action="{{ route('toko-delete-review') }}" method="post">
+                                        @csrf
+                                        <tr class="bg-white border-b">
+                                            <th scope="row" class="py-4 px-6 font-medium text-gray-900 whitespace-normal max-w-2xl">
+                                                {{ $item->nama_barang }}
+                                            </th>
+                                            <td class="py-4 px-6">
+                                                {{ Carbon\Carbon::parse($review->pivot->created_at)->diffForHumans() }}
+                                            </td>
+                                            <td class="py-4 px-6">
+                                                {{ $review->pivot->rating }}
+                                            </td>
+                                            <td class="py-4 px-6">
+                                                {{ $review->pivot->review }}
+                                            </td>
+                                            <td class="py-4 px-6">
+                                                {{ $review->name }}
+                                            </td>
+                                            <td class="py-4 px-6">
+                                                <input type="hidden" name="kode_barang" value="{{ $item->kode_barang }}">
+                                                <input type="hidden" name="username_customer" value="{{ $review->username }}">
+                                                @if($review->trashed())
+                                                    <button type="submit" class="focus:outline-none text-white bg-green-500 hover:bg-green-700 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">Restore</button>
+                                                @else
+                                                    <button type="submit" class="focus:outline-none text-white bg-red-500 hover:bg-red-700 focus:ring-4 focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2">Delete</button>
+                                                @endif
+
+                                            </td>
+                                        </tr>
+                                    </form>
+
+                                @endforeach
+                            @endforeach --}}
+                        </tbody>
+                    </table>
+                </div>
+
+                {{-- @php
+                foreach ($reviewsparent as $item) {
+                    echo "<pre>";
+                    echo($item->reviews);
+                    echo "</pre>";
+                }
+                @endphp --}}
+
             </div>
 
         </div>

@@ -1,10 +1,12 @@
 <?php
 
-use App\Http\Controllers\AdminController;
-use App\Http\Controllers\CustomerController;
+use App\Models\Customer;
+use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\TokoController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AdminController;
+use App\Http\Controllers\CustomerController;
+use App\Models\Store;
 
 /*
 |--------------------------------------------------------------------------
@@ -48,6 +50,8 @@ Route::prefix('customer')->group(function () {
         Route::get('/{id}', [CustomerController::class, 'addFavorite'])->name('customer-add-favorite');
     });
     Route::get('/details/{id}', [CustomerController::class, 'getDetails'])->name('customer-details');
+    Route::get('/details/{id}/{kode?}', [CustomerController::class, 'getDetailsBarang'])->name('customer-details-barang');
+    Route::post('/details/{id}/{kode?}', [CustomerController::class, 'addReview'])->name('customer-add-review-barang');
     Route::get('/{query?}', [CustomerController::class, 'index'])->name('customer-index');
 });
 
@@ -56,6 +60,9 @@ Route::prefix('toko')->group(function () {
     Route::get('/register', [TokoController::class, 'register'])->name('toko-register');
     Route::post('/register', [TokoController::class, 'doRegister'])->name('toko-doRegister');
     Route::get('/profile', [TokoController::class, 'getProfile'])->name('toko-profile');
+
+    Route::post('/review/delete', [TokoController::class, 'doDeleteReview'])->name('toko-delete-review');
+
     Route::get('/post', [TokoController::class, 'getPost'])->name('toko-post');
     Route::post('/post', [TokoController::class, 'doPost'])->name('toko-doPost');
     Route::get('/post/hapus/{id}', [TokoController::class, 'doHapusPost'])->name('toko-doHapusPost');
