@@ -378,5 +378,60 @@ class DatabaseSeeder extends Seeder
                 'updated_at' => $value['created_at'],
             ]);
         }
+
+
+        $logs = [
+            [
+                "id" => 1,
+                "log_username" => "halobangsatu",
+                "log_statuscode" => "200",
+                "log_ip" => "127.0.0.1",
+                "log_path" => "http://127.0.0.1:8000/customer",
+                "log_time" => "2022-11-13 15:43:03"
+            ],
+            [
+                "id" => 2,
+                "log_username" => "halobangsatu",
+                "log_statuscode" => "200",
+                "log_ip" => "127.0.0.1",
+                "log_path" => "http://127.0.0.1:8000/customer/details/tokobangdua",
+                "log_time" => "2022-11-13 15:43:33"
+            ],
+            [
+                "id" => 3,
+                "log_username" => "tokobangsatu",
+                "log_statuscode" => "200",
+                "log_ip" => "127.0.0.1",
+                "log_path" => "http://127.0.0.1:8000/toko",
+                "log_time" => "2022-11-13 15:44:16"
+            ],
+            [
+                "id" => 4,
+                "log_username" => "tokobangsatu",
+                "log_statuscode" => "200",
+                "log_ip" => "127.0.0.1",
+                "log_path" => "http://127.0.0.1:8000/toko/profile",
+                "log_time" => "2022-11-13 15:44:46"
+            ],
+            [
+                "id" => 5,
+                "log_username" => "tokobangsatu",
+                "log_statuscode" => "200",
+                "log_ip" => "127.0.0.1",
+                "log_path" => "http://127.0.0.1:8000/toko/post",
+                "log_time" => "2022-11-13 15:44:49"
+            ],
+            [
+                "id" => 6,
+                "log_username" => "tokobangsatu",
+                "log_statuscode" => "200",
+                "log_ip" => "127.0.0.1",
+                "log_path" => "http://127.0.0.1:8000/toko/items",
+                "log_time" => "2022-11-13 15:44:52"
+            ]
+        ];
+        foreach ($logs as $key => $value) {
+            DB::table('logs')->insert($value);
+        }
     }
 }

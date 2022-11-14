@@ -63,6 +63,7 @@ class SiteController extends Controller
         $req->validate($rules, $messages);
 
         if ($req->username_login == 'admin' && $req->password_login == 'admin') {
+            Session::put('active', 'admin');
             return redirect()->route('admin-cust-list');
         }
 

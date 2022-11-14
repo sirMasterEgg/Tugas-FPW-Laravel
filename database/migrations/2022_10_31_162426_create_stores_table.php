@@ -23,6 +23,7 @@ return new class extends Migration
             $table->boolean('gender');
             $table->foreign('gender')->references('id')->on('genders');
             $table->primary('username');
+            $table->softDeletes();
         });
     }
 

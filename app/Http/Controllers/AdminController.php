@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Customer;
+use App\Models\Store;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Session;
 
@@ -9,12 +11,50 @@ class AdminController extends Controller
 {
     public function getTokoList()
     {
-        return view('admin.tokolist', ['title' => 'Admin Toko Page']);
+        $store = Store::withTrashed()->get();
+        return view('admin.tokolist', ['title' => 'Admin Toko Page', 'store' => $store]);
     }
 
     public function getCustomerList()
     {
-        return view('admin.customerlist', ['title' => 'Admin Customer Page']);
+        $cust = Customer::withTrashed()->get();
+        return view('admin.customerlist', ['title' => 'Admin Customer Page', 'cust' => $cust]);
+    }
+
+    public function blockCustomer()
+    {
+        $username = request('username');
+        $cust = Customer::withTrashed()->where('username', $username)->first();
+
+        if ($cust->trashed()) {
+            $res = $cust->restore();
+        } else {
+            $res = $cust->delete();
+        }
+
+        if ($res) {
+            return redirect()->back()->with('success', 'Customer berhasil dihapus');
+        } else {
+            return redirect()->back()->with('error', 'Customer gagal dihapus');
+        }
+    }
+
+    public function blockToko()
+    {
+        $username = request('username');
+        $toko = Store::withTrashed()->where('username', $username)->first();
+
+        if ($toko->trashed()) {
+            $res = $toko->restore();
+        } else {
+            $res = $toko->delete();
+        }
+
+        if ($res) {
+            return redirect()->back()->with('success', 'Toko berhasil dihapus');
+        } else {
+            return redirect()->back()->with('error', 'Toko gagal dihapus');
+        }
     }
 
     public function editCustomer($id = null)

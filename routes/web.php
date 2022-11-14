@@ -23,11 +23,11 @@ Route::redirect('/', '/login', 301);
 
 Route::get('/logout', [SiteController::class, 'doLogout'])->name('logout');
 
-Route::get('/login', [SiteController::class, 'login'])->name('login');
+Route::get('/login', [SiteController::class, 'login'])->name('login')->middleware('isGuest');
 Route::post('/login', [SiteController::class, 'doLogin'])->name('doLogin');
 
-Route::prefix('customer')->group(function () {
-    Route::get('/register', [CustomerController::class, 'register'])->name('customer-register');
+Route::prefix('customer')->middleware('customer')->group(function () {
+    Route::get('/register', [CustomerController::class, 'register'])->name('customer-register')->middleware('isGuest');
     Route::post('/register', [CustomerController::class, 'doRegister'])->name('customer-doregister');
 
     Route::get('/profile', [CustomerController::class, 'getProfile'])->name('customer-profile');
@@ -49,15 +49,17 @@ Route::prefix('customer')->group(function () {
         Route::get('/', [CustomerController::class, 'getFavorite'])->name('customer-favorite');
         Route::get('/{id}', [CustomerController::class, 'addFavorite'])->name('customer-add-favorite');
     });
-    Route::get('/details/{id}', [CustomerController::class, 'getDetails'])->name('customer-details');
-    Route::get('/details/{id}/{kode?}', [CustomerController::class, 'getDetailsBarang'])->name('customer-details-barang');
-    Route::post('/details/{id}/{kode?}', [CustomerController::class, 'addReview'])->name('customer-add-review-barang');
+    Route::prefix('details')->middleware('isBlocked')->group(function () {
+        Route::get('/{id}', [CustomerController::class, 'getDetails'])->name('customer-details');
+        Route::get('/{id}/{kode?}', [CustomerController::class, 'getDetailsBarang'])->name('customer-details-barang');
+        Route::post('/{id}/{kode?}', [CustomerController::class, 'addReview'])->name('customer-add-review-barang');
+    });
     Route::get('/{query?}', [CustomerController::class, 'index'])->name('customer-index');
 });
 
-Route::prefix('toko')->group(function () {
+Route::prefix('toko')->middleware('toko')->group(function () {
     Route::get('/', [TokoController::class, 'index'])->name('toko-index');
-    Route::get('/register', [TokoController::class, 'register'])->name('toko-register');
+    Route::get('/register', [TokoController::class, 'register'])->name('toko-register')->middleware('isGuest');
     Route::post('/register', [TokoController::class, 'doRegister'])->name('toko-doRegister');
     Route::get('/profile', [TokoController::class, 'getProfile'])->name('toko-profile');
 
@@ -74,11 +76,13 @@ Route::prefix('toko')->group(function () {
     });
 });
 
-Route::prefix('admin')->group(function () {
+Route::prefix('admin')->middleware('admin')->group(function () {
     Route::get('/customer/list', [AdminController::class, 'getCustomerList'])->name('admin-cust-list');
+    Route::post('/customer/list/block', [AdminController::class, 'blockCustomer'])->name('admin-cust-block');
     Route::get('/customer/list/edit/{id?}', [AdminController::class, 'editCustomer'])->name('admin-cust-edit');
     Route::post('/customer/list/edit/{id?}', [AdminController::class, 'doEditCustomer'])->name('admin-cust-doedit');
     Route::get('/toko/list', [AdminController::class, 'getTokoList'])->name('admin-toko-list');
+    Route::post('/toko/list/block', [AdminController::class, 'blockToko'])->name('admin-toko-block');
     Route::get('/toko/list/edit/{id?}', [AdminController::class, 'editToko'])->name('admin-toko-edit');
     Route::post('/toko/list/edit/{id?}', [AdminController::class, 'doEditToko'])->name('admin-toko-doedit');
 });

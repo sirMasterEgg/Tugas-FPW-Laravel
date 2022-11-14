@@ -21,10 +21,12 @@ class CustomerController extends Controller
     {
         $query = $req->query('query') ?? '';
         $query = strtolower($query);
-        $data = DB::table('stores')->select()->get();
+        // $data = DB::table('stores')->select()->get();
+        $data = Store::all();
 
         if ($query != '') {
-            $data = DB::table('stores')->select()->where(DB::raw('lower(name)'), 'like', "%$query%")->get();
+            // $data = DB::table('stores')->select()->where(DB::raw('lower(name)'), 'like', "%$query%")->get();
+            $data = Store::where(DB::raw('lower(name)'), 'like', "%$query%")->get();
         }
 
         // return view('customer.login');

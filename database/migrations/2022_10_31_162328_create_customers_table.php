@@ -23,6 +23,7 @@ return new class extends Migration
             $table->integer('saldo')->default(0);
             $table->primary('username');
             $table->foreign('gender')->references('id')->on('genders');
+            $table->softDeletes();
         });
     }
 
